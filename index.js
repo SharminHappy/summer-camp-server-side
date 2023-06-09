@@ -33,50 +33,62 @@ async function run() {
         await client.connect();
 
 
+        const usersCollection = client.db("summerCampDB").collection("users");
         const classesCollection = client.db("summerCampDB").collection("classes");
         const instructorsCollection = client.db("summerCampDB").collection("instructors");
         const selectCollection = client.db("summerCampDB").collection("selects");
 
 
-        app.get('/classes',async(req,res)=>{
-            const result=await classesCollection.find().toArray();
+        // users collection
+        app.post('/users',async(req,res)=>{
+            const user=req.body;
+            const result=await usersCollection.insertOne(user);
+            res.send(result)
+        })
+        
+        // classes collection  
+        app.get('/classes', async (req, res) => {
+            const result = await classesCollection.find().toArray();
             res.send(result)
         })
 
-        app.get('/instructors',async(req,res)=>{
-            const result=await instructorsCollection.find().toArray();
+
+        // instructor collection
+
+        app.get('/instructors', async (req, res) => {
+            const result = await instructorsCollection.find().toArray();
             res.send(result)
         })
 
 
         // select classes collection
 
-        app.get('/selects',async(req,res)=>{
-            const email=req.query.email;
+        app.get('/selects', async (req, res) => {
+            const email = req.query.email;
             console.log(email)
-            if(!email){
+            if (!email) {
                 res.send([]);
             }
-            const query = { email: email};
-            const result=await selectCollection.find(query).toArray();
+            const query = { email: email };
+            const result = await selectCollection.find(query).toArray();
             res.send(result)
         });
 
-        app.post('/selects',async(req,res)=>{
-            const data=req.body;
+        app.post('/selects', async (req, res) => {
+            const data = req.body;
             console.log(data);
-            const result=await selectCollection.insertOne(data);
+            const result = await selectCollection.insertOne(data);
             res.send(result);
         });
 
-        app.delete('/selects/:id',async(req,res)=>{
-            const  id=req.params.id;
-            const query={_id:new ObjectId(id)};
-            const result=await selectCollection.deleteOne(query);
+        app.delete('/selects/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await selectCollection.deleteOne(query);
             res.send(result);
         })
 
-        
+
 
 
         // Send a ping to confirm a successful connection
