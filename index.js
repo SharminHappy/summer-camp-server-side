@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
@@ -9,11 +10,6 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
-
-
-
-
-
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.sjqbtzt.mongodb.net/?retryWrites=true&w=majority`;
@@ -38,6 +34,12 @@ async function run() {
         const instructorsCollection = client.db("summerCampDB").collection("instructors");
         const selectCollection = client.db("summerCampDB").collection("selects");
 
+
+        app.post('/jwt',(req,res)=>{
+            const user=req.body;
+            const token=jwt.sign(user,env.process.ACCESS_TOKEN_SECRET,{expiresIn: '365d'})
+            res.send({token})
+        })
 
         // users collection
 
