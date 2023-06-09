@@ -42,6 +42,13 @@ async function run() {
         // users collection
         app.post('/users',async(req,res)=>{
             const user=req.body;
+            console.log(user);
+            const query={email:user.email}
+            const existingUser=await usersCollection.findOne(query)
+            console.log('existing user',existingUser)
+            if(existingUser){
+                return res.send({alert: 'user already exit'})
+            }
             const result=await usersCollection.insertOne(user);
             res.send(result)
         })
