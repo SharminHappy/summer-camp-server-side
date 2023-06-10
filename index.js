@@ -72,10 +72,34 @@ async function run() {
             next();
 
         }
+        // admin verify
+        const verifyInstructor=async(req,res,next)=>{
+            const email=req.decoded.email;
+            const query={email:email}
+            const user=await usersCollection.findOne(query);
+            if(user?.role !== "instructor"){
+                return res.status(403).send({error: true,message:'forbidden'})
+
+            }
+            next();
+
+        }
+        // admin verify
+        // const verify=async(req,res,next)=>{
+        //     const email=req.decoded.email;
+        //     const query={email:email}
+        //     const user=await usersCollection.findOne(query);
+        //     if(user?.role !== "admin"){
+        //         return res.status(403).send({error: true,message:'forbidden'})
+
+        //     }
+        //     next();
+
+        // }
 
         // users collection
 
-        app.get('/users',verifyJWT,verifyAdmin, async (req, res) => {
+        app.get('/users',verifyJWT,verifyAdmin,verifyInstructor, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
