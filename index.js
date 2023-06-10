@@ -69,16 +69,29 @@ async function run() {
 
         app.post('/users', async (req, res) => {
             const user = req.body;
-            console.log(user);
+            // console.log(user);
             const query = { email: user.email }
             const existingUser = await usersCollection.findOne(query)
-            console.log('existing user', existingUser)
+            // console.log('existing user', existingUser)
             if (existingUser) {
                 return res.send({ alert: 'user already exit' })
             }
             const result = await usersCollection.insertOne(user);
-            res.send(result)
+            res.send(result);
+        });
+
+        app.get('/users/admin/:email',verifyJWT,async(req,res)=>{
+            const email=req.params.email;
+            if(req.decoded.email !== email){
+                res.send({admin:false})
+            }
+            const query ={email: email};
+            const user=await usersCollection.findOne(query);
+            const result={admin:user?.role === 'admin'}
+            console.log(result)
+            res.send(result);
         })
+
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
@@ -131,17 +144,19 @@ async function run() {
             }
 
             const decodedEmail = req.decoded.email;
+            // console.log(decodedEmail)
             if (email !== decodedEmail) {
                 return res.status(403).send({ error: true, message: 'Forbidden Access' })
             }
             const query = { email: email };
+            console.log(query);
             const result = await selectCollection.find(query).toArray();
             res.send(result)
         });
 
         app.post('/selects', async (req, res) => {
             const data = req.body;
-            console.log(data);
+            // console.log(data);
             const result = await selectCollection.insertOne(data);
             res.send(result);
         });
