@@ -99,7 +99,7 @@ async function run() {
 
         // users collection
 
-        app.get('/users',verifyJWT,verifyAdmin,verifyInstructor, async (req, res) => {
+        app.get('/users',verifyJWT,verifyInstructor,verifyAdmin, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
