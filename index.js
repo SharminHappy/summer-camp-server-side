@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.PAYMENT_KEY)
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
@@ -50,6 +51,8 @@ async function run() {
         const classesCollection = client.db("summerCampDB").collection("classes");
         const instructorsCollection = client.db("summerCampDB").collection("instructors");
         const selectCollection = client.db("summerCampDB").collection("selects");
+        const paymentCollection = client.db("summerCampDB").collection("payments");
+
 
 
 
@@ -99,7 +102,7 @@ async function run() {
 
         // users collection
 
-        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+        app.get('/users', verifyJWT, verifyAdmin, verifyStudent, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
@@ -289,6 +292,34 @@ async function run() {
             res.send(result);
         })
 
+        // payment
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        // payment related api
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+            // const itemId = new ObjectId(payment.cartItem.id);
+            const query = { _id: new ObjectId(payment.selectItem) };
+
+
+            const deleteResult = await selectCollection.deleteOne(query);
+            res.send({ insertResult, deleteResult });
+
+
+        })
 
 
 
