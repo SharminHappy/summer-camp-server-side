@@ -61,36 +61,36 @@ async function run() {
         })
 
         // admin verify
-        const verifyAdmin=async(req,res,next)=>{
-            const email=req.decoded.email;
-            const query={email:email}
-            const user=await usersCollection.findOne(query);
-            if(user?.role !== "admin"){
-                return res.status(403).send({error: true,message:'forbidden'})
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== "admin") {
+                return res.status(403).send({ error: true, message: 'forbidden' })
 
             }
             next();
 
         }
-        // admin verify
-        const verifyInstructor=async(req,res,next)=>{
-            const email=req.decoded.email;
-            const query={email:email}
-            const user=await usersCollection.findOne(query);
-            if(user?.role !== "instructor"){
-                return res.status(403).send({error: true,message:'forbidden'})
+        // Instructor verify
+        const verifyInstructor = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== "instructor") {
+                return res.status(403).send({ error: true, message: 'forbidden' })
 
             }
             next();
 
         }
-        // admin verify
-        const verifyStudent=async(req,res,next)=>{
-            const email=req.decoded.email;
-            const query={email:email}
-            const user=await usersCollection.findOne(query);
-            if(user?.role !== "student"){
-                return res.status(403).send({error: true,message:'forbidden'})
+        // student verify
+        const verifyStudent = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== "student") {
+                return res.status(403).send({ error: true, message: 'forbidden' })
 
             }
             next();
@@ -99,7 +99,7 @@ async function run() {
 
         // users collection
 
-        app.get('/users',verifyJWT,verifyStudent,verifyInstructor,verifyAdmin, async (req, res) => {
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
@@ -184,11 +184,60 @@ async function run() {
 
         })
 
+        // approve,pending doing will be here
         // classes collection  
         app.get('/classes', async (req, res) => {
             const result = await classesCollection.find().toArray();
             res.send(result)
         })
+
+        app.post('/classes', async (req, res) => {
+            const classItem = {
+                image: req.body.image,
+                class_name: req.body.class_name,
+                instructor_name: req.body.instructor_name,
+                instructor_name: req.body.instructor_email,
+                available_seats: req.body.available_seats,
+                price: req.body.price,
+                status: 'pending'
+            }
+            const result = await classesCollection.insertOne(classItem)
+            res.send(result);
+        })
+
+        app.patch('/classes/approve/:id', async (req, res) => {
+            const id = req.params.id;
+
+            const filter = {
+                _id: new ObjectId(id),
+                status: 'pending'
+            };
+            const updateDoc = {
+                $set: {
+                    status: 'approve',
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/classes/deny/:id', async (req, res) => {
+            const id = req.params.id;
+
+            const filter = {
+                _id: new ObjectId(id),
+                status: 'pending'
+            };
+            const updateDoc = {
+                $set: {
+                    status: 'deny',
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+
 
 
         // instructor collection
@@ -197,6 +246,13 @@ async function run() {
             const result = await instructorsCollection.find().toArray();
             res.send(result)
         })
+
+
+        app.get('/manageclasses', async (req, res) => {
+            const result = await classesCollection.find({ status: "pending" }).toArray();
+            res.send(result);
+        });
+
 
 
         // select classes collection
